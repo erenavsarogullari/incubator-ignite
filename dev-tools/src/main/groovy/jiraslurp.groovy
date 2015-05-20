@@ -233,17 +233,17 @@ def runAllTestBuilds = { builds, jiraNum ->
 
             String response = "";
             String line;
-  
+
             while ((line = br.readLine()) != null)
                 response += line
 
             br.close();
 
             println "Response: $response"
-  
+
             def build = new XmlSlurper().parseText(response)
 
-            println "Triggered build: ${build.@name}"
+            println "Triggered build: ${build.buildType.@name}"
             println "Triggered build url: ${build.@webUrl}"
             println "Triggered build branch: ${build.@branchName}"
         }
