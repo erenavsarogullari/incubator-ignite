@@ -263,7 +263,13 @@ args.each {
 
     println parameters
 
-    if (parameters.length == 2 && parameters[0] == "slurp" && parameters[1] != 'null') {
+    if (parameters.length >= 1 && parameters[0] == "slurp") {
+        if (parameters.length < 2 || parameters[1] == 'null') {
+            println "There is no builds to run. Exit."
+
+            return
+        }
+
         def builds = parameters[1].split(' ');
 
         println "Running in 'slurp' mode. Test builds=${builds}"
@@ -278,7 +284,13 @@ args.each {
             runAllTestBuilds(builds,k)
         }
     }
-    else if (parameters.length == 2 && parameters[0] == "patchApply" && parameters[1] ==~ /\w+-\d+/) {
+    else if (parameters.length > 1 && parameters[0] == "patchApply") {
+        if (parameters.length < 2 || parameters[1] !=~ /\w+-\d+/) {
+            println "There is no jira number to apply. Exit."
+
+            return
+        }
+
         def jiraNum = parameters[1]
 
         println "Running in 'patch apply' mode with jira number '$jiraNum'"
@@ -298,7 +310,13 @@ args.each {
             applyPatch(jira, attachementURL)
         }
     }
-    else if (parameters.length >= 2 && parameters[0] == "runAllBuilds" && parameters[1] != 'null') {
+    else if (parameters.length > 1 && parameters[0] == "runAllBuilds" ) {
+        if (parameters.length < 2 || parameters[1] == 'null') {
+            println "There is no builds to run. Exit."
+
+            return
+        }
+
         def builds = parameters[1].split(' ');
 
         def jiraNum = parameters[2]
