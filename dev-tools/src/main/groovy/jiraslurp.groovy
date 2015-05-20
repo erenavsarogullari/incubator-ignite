@@ -293,17 +293,14 @@ args.each {
             applyPatch(jira, attachementURL)
         }
     }
-    else if (parameters.length >= 2 && parameters[0] == "runAllBuilds") {
-        def jiraNum = parameters[1]
+    else if (parameters.length >= 2 && parameters[0] == "runAllBuilds" && parameters[1] != 'null') {
+        def builds = parameters[1].split(' ');
 
-        def attachementURL=null
+        def jiraNum = parameters[2]
 
-        if (parameters[2] ==~ /\d+/)
-            attachementURL = parameters[2]
+        println "Running in 'all builds' mode for builds=$builds with jira number='$jiraNum'."
 
-        println "Running in 'all builds' mode with jira number='$jiraNum' and attachment URL='$attachementURL'."
-
-        runAllTestBuilds jiraNum attachmentURL
+        runAllTestBuilds(builds, jiraNum)
     }
 }
 
