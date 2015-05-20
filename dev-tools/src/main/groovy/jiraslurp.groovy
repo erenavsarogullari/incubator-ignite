@@ -179,9 +179,41 @@ def JIRA_xml = { jiranum ->
 }
 
 /**
+ * Gets all builds from TC project.
+ */
+def getTestBuilds = { ->
+    def projName = System.getenv('PROJECT_NAME')
+
+    if (projName == null || projName == 'null')
+        projName = "Ignite"
+
+    def tcURL = System.getenv('TC_URL')
+    def excludeListProp = System.getenv('BUILD_ID_EXCLUDES')
+    def excludeList = excludeListProp?.split(' ') as List
+
+    if (excludeList == null || excludeList == 'null')
+        excludeList = ["Ignite_RunAllTestBuilds"]
+
+    def project = new XmlSlurper().parse("http://$tcURL:80/guestAuth/app/rest/projects/id:$projName")
+
+    def buildIds = []
+
+    def count = Integer.valueOf(project.buildTypes.@count as String)
+
+    for (int i = 0; i < count; i++) {
+        def id = project.buildTypes.buildType[i].@id
+
+        if (excludeList == null || !excludeList.contains(id))
+            buildIds.add(id)
+    }
+
+    buildIds
+}
+
+/**
  * Runs all given test builds to validate last patch from given jira.
  */
-def runAllTestBuilds = { builds, jiraNum ->
+def runAllTestBuilds = {builds, jiraNum ->
     def tcURL = System.getenv('TC_URL')
     def user = System.getenv('TASK_RUNNER_USER')
     def pwd = System.getenv('TASK_RUNNER_PWD')
@@ -264,24 +296,20 @@ args.each {
     println parameters
 
     if (parameters.length >= 1 && parameters[0] == "slurp") {
-        if (parameters.length < 2 || parameters[1] == 'null') {
-            println "There is no builds to run. Exit."
-
-            return
-        }
-
-        def builds = parameters[1].split(' ');
-
-        println "Running in 'slurp' mode. Test builds=${builds}"
+        println "Running in 'slurp' mode."
 
         checkForAttachments()
+
+        def builds = getTestBuilds()
+
+        println "Test builds to be triggered=$builds"
 
         // For each ticket with new attachment, let's trigger remove build
         jirasAttached.each { k, v ->
             //  Trailing slash is important for download; only need to pass JIRA number
             println "Triggering the test builds for: $k = $ATTACHMENT_URL/$v/"
 
-            runAllTestBuilds(builds,k)
+            runAllTestBuilds(builds, k)
         }
     }
     else if (parameters.length > 1 && parameters[0] == "patchApply") {
@@ -311,17 +339,13 @@ args.each {
         }
     }
     else if (parameters.length > 1 && parameters[0] == "runAllBuilds" ) {
-        if (parameters.length < 2 || parameters[1] == 'null') {
-            println "There is no builds to run. Exit."
+        def jiraNum = parameters[1]
 
-            return
-        }
+        println "Running in 'all builds' mode with jira number='$jiraNum'."
 
-        def builds = parameters[1].split(' ');
+        def builds = getTestBuilds()
 
-        def jiraNum = parameters[2]
-
-        println "Running in 'all builds' mode for builds=$builds with jira number='$jiraNum'."
+        println "Test builds to be triggered=$builds"
 
         runAllTestBuilds(builds, jiraNum)
     }
