@@ -194,13 +194,21 @@ def runAllTestBuilds = { builds, jiraNum ->
             try {
                 println "Triggering $it build for $jiraNum jira..."
 
-                String postData =
-                    "<build>" +
-                        "  <buildType id='$it'/>" +
-                        "  <properties>" +
-                        "    <property name='env.JIRA_NUM' value='$jiraNum'/>" +
-                        "  </properties>" +
-                        "</build>";
+                String postData
+
+                if (jiraNum != 'null' || jiraNum != null) {
+                    postData = "<build>" +
+                            "  <buildType id='$it'/>" +
+                            "</build>";
+                }
+                else {
+                    postData = "<build>" +
+                            "  <buildType id='$it'/>" +
+                            "  <properties>" +
+                            "    <property name='env.JIRA_NUM' value='$jiraNum'/>" +
+                            "  </properties>" +
+                            "</build>";
+                }
 
                 URL url = new URL("http://$tcURL:80/httpAuth/app/rest/buildQueue");
 
@@ -285,7 +293,7 @@ args.each {
             applyPatch(jira, attachementURL)
         }
     }
-    else if (parameters.length >= 2 && parameters[0] == "runAllBuilds" && parameters[1] ==~ /\w+-\d+/) {
+    else if (parameters.length >= 2 && parameters[0] == "runAllBuilds") {
         def jiraNum = parameters[1]
 
         def attachementURL=null
