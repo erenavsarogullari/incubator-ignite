@@ -229,15 +229,23 @@ def runAllTestBuilds = { builds, jiraNum ->
             conn.connect();
 
             // Read response.
-            print "Response: "
-
             BufferedReader br = new BufferedReader(new InputStreamReader(conn.getInputStream()));
 
+            String response = "";
             String line;
+  
             while ((line = br.readLine()) != null)
-                println line
+                response += line
 
             br.close();
+
+            println "Response: $response"
+  
+            def build = new XmlSlurper().parseText(response)
+
+            println "Triggered build: ${build.@name}"
+            println "Triggered build url: ${build.@webUrl}"
+            println "Triggered build branch: ${build.@branchName}"
         }
         catch (Exception e) {
             e.printStackTrace()
