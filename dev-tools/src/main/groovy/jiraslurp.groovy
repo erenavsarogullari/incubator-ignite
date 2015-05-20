@@ -198,7 +198,7 @@ def runAllTestBuilds = { builds, jiraNum ->
                     "<build>" +
                         "  <buildType id='$it'/>" +
                         "  <properties>" +
-                        "    <property name='JIRA_NUM' value='$jiraNum'/>" +
+                        "    <property name='env.JIRA_NUM' value='$jiraNum'/>" +
                         "  </properties>" +
                         "</build>";
 
