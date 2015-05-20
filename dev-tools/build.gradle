@@ -36,7 +36,7 @@ task help {
 }
 
 task slurp(dependsOn: 'classes', type: JavaExec) {
-    args(project.buildDir, "slurp,${System.getenv('TEST_BUILDS')}")
+    args(project.buildDir)
     main = 'jiraslurp'
     classpath = sourceSets.main.runtimeClasspath
 }
@@ -48,7 +48,7 @@ task patchapply(dependsOn: 'classes', type: JavaExec) {
 }
 
 task runAllBuilds(dependsOn: 'classes', type: JavaExec) {
-    args("runAllBuilds,${System.getenv('TEST_BUILDS')},${System.getenv('JIRA_NUM')}")
+    args("runAllBuilds,${System.getenv('JIRA_NUM')}")
     main = 'jiraslurp'
     classpath = sourceSets.main.runtimeClasspath
 }
