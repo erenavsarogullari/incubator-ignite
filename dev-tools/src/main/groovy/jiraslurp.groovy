@@ -182,68 +182,65 @@ def JIRA_xml = { jiranum ->
  * Runs all given test builds to validate last patch from given jira.
  */
 def runAllTestBuilds = { builds, jiraNum ->
-    assert jiraNum != 'null', 'Jira number should not be null.'
-    assert jiraNum != null, 'Jira number should not be null.'
+    def tcURL = System.getenv('TC_URL')
+    def user = System.getenv('TASK_RUNNER_USER')
+    def pwd = System.getenv('TASK_RUNNER_PWD')
 
-    if (jiraNum) {
-        def tcURL = System.getenv('TC_URL')
-        def user = System.getenv('TASK_RUNNER_USER')
-        def pwd = System.getenv('TASK_RUNNER_PWD')
+    builds.each {
+        try {
+            println "Triggering $it build for $jiraNum jira..."
 
-        builds.each {
-            try {
-                println "Triggering $it build for $jiraNum jira..."
+            String postData
 
-                String postData
-
-                if (jiraNum != 'null' || jiraNum != null) {
-                    postData = "<build>" +
-                            "  <buildType id='$it'/>" +
-                            "</build>";
-                }
-                else {
-                    postData = "<build>" +
-                            "  <buildType id='$it'/>" +
-                            "  <properties>" +
-                            "    <property name='env.JIRA_NUM' value='$jiraNum'/>" +
-                            "  </properties>" +
-                            "</build>";
-                }
-
-                URL url = new URL("http://$tcURL:80/httpAuth/app/rest/buildQueue");
-
-                HttpURLConnection conn = (HttpURLConnection)url.openConnection();
-
-                String encoded = new sun.misc.BASE64Encoder().encode("$user:$pwd".getBytes());
-
-                conn.setRequestProperty("Authorization", "Basic " + encoded);
-
-                conn.setDoOutput(true);
-                conn.setRequestMethod("POST");
-                conn.setRequestProperty("Content-Type", "application/xml");
-                conn.setRequestProperty("Content-Length", String.valueOf(postData.length()));
-
-                OutputStream os = conn.getOutputStream();
-                os.write(postData.getBytes());
-                os.flush();
-                os.close();
-
-                conn.connect();
-
-                // Read response.
-                print "Response: "
-
-                BufferedReader br = new BufferedReader(new InputStreamReader(conn.getInputStream()));
-
-                String line;
-                while ((line = br.readLine()) != null)
-                    println line
-
-                br.close();
+            if (jiraNum == 'null' || jiraNum == null) {
+                postData = "<build>" +
+                        "  <buildType id='$it'/>" +
+                        "</build>";
             }
-            catch (Exception e) {
-                e.printStackTrace()
+            else {
+                postData = "<build>" +
+                        "  <buildType id='$it'/>" +
+                        "  <properties>" +
+                        "    <property name='env.JIRA_NUM' value='$jiraNum'/>" +
+                        "  </properties>" +
+                        "</build>";
             }
+
+            println "Request: $postData"
+
+            URL url = new URL("http://$tcURL:80/httpAuth/app/rest/buildQueue");
+
+            HttpURLConnection conn = (HttpURLConnection)url.openConnection();
+
+            String encoded = new sun.misc.BASE64Encoder().encode("$user:$pwd".getBytes());
+
+            conn.setRequestProperty("Authorization", "Basic " + encoded);
+
+            conn.setDoOutput(true);
+            conn.setRequestMethod("POST");
+            conn.setRequestProperty("Content-Type", "application/xml");
+            conn.setRequestProperty("Content-Length", String.valueOf(postData.length()));
+
+            OutputStream os = conn.getOutputStream();
+            os.write(postData.getBytes());
+            os.flush();
+            os.close();
+
+            conn.connect();
+
+            // Read response.
+            print "Response: "
+
+            BufferedReader br = new BufferedReader(new InputStreamReader(conn.getInputStream()));
+
+            String line;
+            while ((line = br.readLine()) != null)
+                println line
+
+            br.close();
+        }
+        catch (Exception e) {
+            e.printStackTrace()
         }
     }
 }
